@@ -101,14 +101,10 @@ public class RefreshLayout extends ViewGroup implements NestedScrollingParent,
 
     private static final int ALPHA_ANIMATION_DURATION = 300;
 
-    private static final int ANIMATE_TO_TRIGGER_DURATION = 200;
-
     private static final int ANIMATE_TO_START_DURATION = 200;
 
     // Default background for the progress spinner
     private static final int CIRCLE_LIGHT = 0xFFFAFA00;
-    //refreshlayout 背景色 黑色
-    private static final int REFRESHLAYOUT_BG = 0x000000;
 
     // Default offset in dips from the top of the view to where the progress spinner should stop
     private static final int DEFAULT_CIRCLE_TARGET = 84;
@@ -160,15 +156,9 @@ public class RefreshLayout extends ViewGroup implements NestedScrollingParent,
 
     CustomProgressDrawable mProgress;
 
-    private Animation mScaleAnimation;
-
-    private Animation mScaleDownAnimation;
-
     private Animation mAlphaStartAnimation;
 
     private Animation mAlphaMaxAnimation;
-
-    private Animation mScaleDownToStartAnimation;
 
     boolean mNotify;
 
@@ -194,7 +184,6 @@ public class RefreshLayout extends ViewGroup implements NestedScrollingParent,
             if (mRefreshing) {
                 // Make sure the progress view is fully visible
                 mProgress.setAlpha(MAX_ALPHA);
-//                mProgress.start();
                 if (mNotify) {
                     if (mListener != null) {
                         mListener.onRefresh();
@@ -363,7 +352,6 @@ public class RefreshLayout extends ViewGroup implements NestedScrollingParent,
         final TypedArray a = context.obtainStyledAttributes(attrs, LAYOUT_ATTRS);
         setEnabled(a.getBoolean(0, true));
 
-        int resourceId = getResources().getIdentifier("status_bar_height", "dimen", "android");
        // 获取ActionBar高度
         actionBarHeight = getActionBarSize(context);
         a.recycle();
@@ -376,15 +364,19 @@ public class RefreshLayout extends ViewGroup implements NestedScrollingParent,
      * @return
      */
     public int getActionBarSize(Context context) {
+        TypedArray actionbarSizeTypedArray = null;
+        try {
+            actionbarSizeTypedArray = context.obtainStyledAttributes(new int[]{
 
-        TypedArray actionbarSizeTypedArray = context.obtainStyledAttributes(new int[]{
+                    android.R.attr.actionBarSize
 
-                android.R.attr.actionBarSize
-
-        });
-
-        return (int) actionbarSizeTypedArray.getDimension(0, 0);
-
+            });
+            return (int) actionbarSizeTypedArray.getDimension(0, 0);
+        }finally {
+            if (actionbarSizeTypedArray != null) {
+                actionbarSizeTypedArray.recycle();
+            }
+        }
     }
 
     @Override
@@ -464,7 +456,7 @@ public class RefreshLayout extends ViewGroup implements NestedScrollingParent,
             // Don't adjust the alpha during appearance otherwise.
             mProgress.setAlpha(MAX_ALPHA);
         }
-        mScaleAnimation = new Animation() {
+        Animation mScaleAnimation = new Animation() {
             @Override
             public void applyTransformation(float interpolatedTime, Transformation t) {
                 setAnimationProgress(interpolatedTime);
@@ -527,15 +519,9 @@ public class RefreshLayout extends ViewGroup implements NestedScrollingParent,
      * @param listener
      */
     void startUpAnimation(AnimationListener listener) {
-//        mScaleDownAnimation = new Animation() {
-//            @Override
-//            public void applyTransformation(float interpolatedTime, Transformation t) {
-//                setAnimationProgress(1 - interpolatedTime);
-//            }
-//        };
 
         final int deltaY = -mCircleView.getBottom();
-        mScaleDownAnimation = new TranslateAnimation(0, 0, 0, deltaY);
+        Animation mScaleDownAnimation = new TranslateAnimation(0, 0, 0, deltaY);
 //        mScaleDownAnimation.setDuration(SCALE_DOWN_DURATION);
         mScaleDownAnimation.setDuration(600);
         mCircleView.setAnimationListener(listener);
@@ -1270,7 +1256,7 @@ public class RefreshLayout extends ViewGroup implements NestedScrollingParent,
         } else {
             mStartingScale = ViewCompat.getScaleX(mCircleView);
         }
-        mScaleDownToStartAnimation = new Animation() {
+        Animation mScaleDownToStartAnimation = new Animation() {
             @Override
             public void applyTransformation(float interpolatedTime, Transformation t) {
                 float targetScale = (mStartingScale + (-mStartingScale * interpolatedTime));
